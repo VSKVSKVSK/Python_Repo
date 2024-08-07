@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>port_manager</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            a {
+                color: #000;
+                text-decoration: none;
+            }
+        }
+        .wrapper {
+            margin: 50px auto;
+            padding: 50px 100px;
+            height: 700px;
+            width: 1200px;
+            background-color: rgba(197, 194, 194, 0.732);
+            padding-top: 30px 50px;
+            h3 {
+                font-size: 30px;
+            }
+            .port_list {
+                display: block;
+                margin: 20px 0;
+                font-size: 20px;
+                .refresh {
+                    display: inline-block;
+                    width: 70px;
+                    height: 30px;
+                    margin-left: 20px;
+                }
+            }
+            .port {
+                border-bottom: 1px solid #000;
+                padding-bottom: 30px;
+                input {
+                    outline: none;
+                    border: none;
+                    display: block;
+                    width: 200px;
+                    height: 30px;
+                    margin: 20px 0;
+                    padding-left: 10px;
+                }
+                button {
+                    display: block;
+                    width: 50px;
+                    height: 30px;
+                }
+            }
+            .status {
+                margin-top: 20px;
+                /* display: none; */
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <h3>Port Supervisor</h3>
+        <span class="port_list">当前可使用端口号：<button class="refresh">刷新列表</button></span>
+        <div class="port">
+            <input type="text" placeholder="需要归还的端口号" name="push">
+            <button id="push">归还</button>
+            <input type="text" placeholder="需要索取的端口号" name="pop">
+            <button id="pop">索取</button>
+        </div>
+        <div class="status">
+            <span class="result">status to be describe</span>
+        </div>
+    </div>
+    <script>
+        const list = document.querySelector(".port_list");
+        const push = document.querySelector("[name=push]");
+        const pop = document.querySelector("[name=pop]");
+        const btn_push = document.querySelector("#push");
+        const btn_pop = document.querySelector("#pop");
+        const btn_refresh = document.querySelector(".refresh");
+        const result = document.querySelector(".result");
+
+        const request_url = "http://111.231.32.99:8015";
+        const push_url = "/port/push";
+        const pop_url = "/port/pop";
+        const list_url = "/port/list";
+
+        // push
+        btn_push.addEventListener("click", function() {
+            const target_url = request_url + push_url;
+            const data = {port:`${push.value}`};
+            send(target_url, data);
+        });
+        // pop
+        btn_pop.addEventListener("click", function() {
+            const target_url = request_url + pop_url;
+            const data = {port:`${pop.value}`};
+            send(target_url, data);
+        });
+        // list
+        btn_refresh.addEventListener("click", function() {
+            const target_url = request_url + list_url;
+            list.innerHTML = `当前可使用端口号：[${send(target_url, {})}] <button class="refresh">刷新列表</button>`;
+        });
+         
+        // 传输
+        function send(url, data) {
+            console.info("目标url: ", url);
+            console.info("传输data: ", JSON.stringify(data));
+            fetch(url, {
+                method: "POST",
+                // mode: "no-cors",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                console.log(response);
+                if(!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                result.innerHTML = data.message;
+            })
+            .catch(error => {
+                console.log(error);
+                result.innerHTML = "Error fetching data";
+            })
+            return data.message;
+        }
+    </script>
+</body>
+</html>
